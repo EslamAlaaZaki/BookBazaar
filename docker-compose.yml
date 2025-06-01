@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  sql_server:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: bookbazaar_sql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Admin@12345
+      - MSSQL_PID=Express
+    ports:
+      - "14330:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - bookbazaar_net
+
+  bookbazaar_api:
+    build:
+      context: .
+      dockerfile: BookBazaar.API/Dockerfile
+    container_name: bookbazaar_api
+    depends_on:
+      - sql_server
+    ports:
+      - "5238:80"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sql_server;Database=BookBazaarDb;User=sa;Password=Admin@12345;TrustServerCertificate=True;
+    networks:
+      - bookbazaar_net
+
+volumes:
+  sql_data:
+
+networks:
+  bookbazaar_net:
+    driver: bridge
